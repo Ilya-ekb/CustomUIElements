@@ -8,6 +8,10 @@ namespace CustomUIElements
     public static class CutoutMeshBuilder
     {
         private static ushort bIndex = 0;
+        private static ushort tLIndex = 0;
+        private static ushort tRIndex = 0;
+        private static ushort bLIndex = 0;
+        private static ushort bRIndex = 0;
 
         /// <summary>
         /// Генерирует контур (список Vector2) для скругленного прямоугольника с треугольным вырезом на любой стороне.
@@ -44,8 +48,7 @@ namespace CustomUIElements
 
 
             var points = ComputeCorners(w, h, center, rTL, rTR, rBR, rBL, arcSegments);
-
-            bIndex = (ushort)((arcSegments + 1) * (int)cutoutSide + 1);
+            
             var first = cutoutSide is Side.Top or Side.Right ? baseStart : baseEnd;
             var last = cutoutSide is Side.Top or Side.Right ? baseEnd : baseStart;
             var fPoint = cutoutSide switch
@@ -65,6 +68,14 @@ namespace CustomUIElements
                 Side.Left => new Vector2(0, last),
                 _ => default
             };
+
+            bIndex = cutoutSide switch
+            {
+                Side.Top => tLIndex,
+                Side.Right => tRIndex,
+                Side.Bottom => bRIndex,
+                Side.Left => bLIndex,
+            };
             
             points.Insert(bIndex, fPoint);
             points.Insert(bIndex + 1, lPoint);
@@ -83,18 +94,22 @@ namespace CustomUIElements
                 AddArc(rTL, rTL, Mathf.PI, 1.5f * Mathf.PI, rTL, arcSegments);
             else
                 points.Add(new Vector2(0, 0));
+            tLIndex = (ushort)points.Count;
             if (rTR > 0)
                 AddArc(w - rTR, rTR, 1.5f * Mathf.PI, 2 * Mathf.PI, rTR, arcSegments);
             else
                 points.Add(new Vector2(w, 0));
+            tRIndex = (ushort)points.Count;
             if (rBR > 0)
                 AddArc(w - rBR, h - rBR, 0, 0.5f * Mathf.PI, rBR, arcSegments);
             else
                 points.Add(new Vector2(w, h));
+            bRIndex = (ushort)points.Count;
             if (rBL > 0)
                 AddArc(rBL, h - rBL, 0.5f * Mathf.PI, Mathf.PI, rBL, arcSegments);
             else
                 points.Add(new Vector2(0, h));
+            bLIndex = (ushort)points.Count;
             points.Add(new Vector2(0, rTL));
             return points;
             
