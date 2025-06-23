@@ -1,7 +1,7 @@
 {
   "name": "com.uitoolkit.custom.ui",
   "displayName": "UIToolkit Custom UI Elements",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Custom UI Elements for Unity UIToolkit framework",
   "keywords": [ "utility", "ui", "uitoolkit" ],
   "author": {
