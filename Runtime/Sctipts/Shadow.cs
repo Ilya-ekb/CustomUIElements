@@ -6,7 +6,7 @@ namespace CustomUIElements
     [UxmlElement]
     public partial class Shadow : VisualElement
     {
-        [UxmlAttribute] public TriangleCutoutElement.Side CutoutSide
+        [UxmlAttribute] public Side CutoutSide
         {
             get => cutoutSide;
             set { if (cutoutSide != value) { cutoutSide = value; MarkDirtyRepaint(); } }
@@ -51,7 +51,7 @@ namespace CustomUIElements
             set { if (shadowColor != value) { shadowColor = value; MarkDirtyRepaint(); } }
         }
         
-        private TriangleCutoutElement.Side cutoutSide = TriangleCutoutElement.Side.Top;
+        private Side cutoutSide = Side.Top;
         private float cutoutOffset = 0.5f;
         private float baseSize = 0.3f;
         private float depth = 0.1f;
@@ -73,7 +73,7 @@ namespace CustomUIElements
             if (rect.width <= 1 || rect.height <= 1) return;
 
             float w = rect.width, h = rect.height;
-            bool topOrBottom = cutoutSide is TriangleCutoutElement.Side.Top or TriangleCutoutElement.Side.Bottom;
+            bool topOrBottom = cutoutSide is Side.Top or Side.Bottom;
 
             float sideLength = topOrBottom ? w : h;
             float basePx = Mathf.Clamp(baseSize * sideLength, 0, sideLength);
@@ -95,7 +95,7 @@ namespace CustomUIElements
                 return p;
             }
 
-            if (cutoutSide == TriangleCutoutElement.Side.Top)
+            if (cutoutSide == Side.Top)
             {
                 mesh.SetNextVertex(VertexShadow(ScaleAndOffset(new Vector2(0, 0)), w, h));
                 mesh.SetNextVertex(VertexShadow(ScaleAndOffset(new Vector2(baseStart, 0)), w, h));
@@ -111,7 +111,7 @@ namespace CustomUIElements
                 mesh.SetNextIndex(3); mesh.SetNextIndex(4); mesh.SetNextIndex(5);
                 mesh.SetNextIndex(2); mesh.SetNextIndex(5); mesh.SetNextIndex(6);
             }
-            else if (cutoutSide == TriangleCutoutElement.Side.Bottom)
+            else if (cutoutSide == Side.Bottom)
             {
                 mesh.SetNextVertex(VertexShadow(ScaleAndOffset(new Vector2(0, 0)), w, h));
                 mesh.SetNextVertex(VertexShadow(ScaleAndOffset(new Vector2(w, 0)), w, h));
@@ -127,7 +127,7 @@ namespace CustomUIElements
                 mesh.SetNextIndex(4); mesh.SetNextIndex(5); mesh.SetNextIndex(6);
                 mesh.SetNextIndex(0); mesh.SetNextIndex(4); mesh.SetNextIndex(6);
             }
-            else if (cutoutSide == TriangleCutoutElement.Side.Left)
+            else if (cutoutSide == Side.Left)
             {
                 mesh.SetNextVertex(VertexShadow(ScaleAndOffset(new Vector2(0, 0)), w, h));
                 mesh.SetNextVertex(VertexShadow(ScaleAndOffset(new Vector2(w, 0)), w, h));
