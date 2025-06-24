@@ -16,6 +16,7 @@ namespace CustomUIElements.Utilities
         // List of dependencies: name => git-url or version
         private static readonly Dictionary<string, string> dependenciesToAdd = new Dictionary<string, string>
         {
+            {"com.codewriter.triinspector", "https://github.com/codewriter-packages/Tri-Inspector.git"}
             // Add your dependencies here
         };
 

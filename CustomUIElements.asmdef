@@ -1,3 +1,16 @@
 {
-	"name": "CustomUIElements"
+    "name": "CustomUIElements",
+    "rootNamespace": "",
+    "references": [
+        "TriInspector"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

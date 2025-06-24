@@ -12,10 +12,7 @@ namespace CustomUIElements
         private static ushort bLIndex = 0;
         private static ushort bRIndex = 0;
 
-        /// <summary>
-        /// Генерирует контур (список Vector2) для скругленного прямоугольника с треугольным вырезом на любой стороне.
-        /// </summary>s
-        public static List<Vector2> GenerateContour(float w, float h,
+        public static List<Vector2> GenerateCutoutContour(float w, float h,
             CornerRadii radii,
             Side cutoutSide,
             float baseNorm,
@@ -83,7 +80,7 @@ namespace CustomUIElements
             points.Insert(aIndex + 2, lPoint);
             return points;
         }
-
+        
         private static List<Vector2> ComputeCorners(
             float w, float h, Vector2 center,
             float rTL, float rTR,
@@ -131,22 +128,19 @@ namespace CustomUIElements
             }
         }
 
-        /// <summary>
-        /// Построить меш (вершины и индексы) для UI Toolkit (или Mesh API) на основании точек контура
-        /// </summary>
-        public static void BuildMesh(List<Vector2> contour, float w, float h, out Vertex[] vertices,
-            out ushort[] indices)
+        public static void BuildMesh(List<Vector2> contour, float w, float h, out List<Vertex> vertices,
+            out List<ushort> indices)
         {
             int n = contour.Count;
-            vertices = new Vertex[n];
+            vertices = new List<Vertex>(n);
             for (int i = 0; i < n; i++)
             {
-                vertices[i] = new Vertex
+                vertices.Add(new Vertex
                 {
                     position = new Vector3(contour[i].x, contour[i].y, 0),
                     tint = Color.white,
                     uv = new Vector2(contour[i].x / w, 1f - contour[i].y / h)
-                };
+                });
             }
 
             // Триангуляция фаном (работает если контур выпуклый/почти-выпуклый и не пересекается!)
@@ -162,7 +156,7 @@ namespace CustomUIElements
                 inds.Add(c);
             }
 
-            indices = inds.ToArray();
+            indices = inds;
         }
     }
 }

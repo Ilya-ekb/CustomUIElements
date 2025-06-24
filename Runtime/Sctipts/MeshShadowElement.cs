@@ -7,7 +7,8 @@ using UnityEngine.UIElements;
 namespace CustomUIElements
 {
     [UxmlElement]
-    public partial class MeshShadow : VisualElement
+    public partial class MeshShadowElement : VisualElement
+
     {
         [UxmlAttribute]
         public ShadowType ShowShadow
@@ -92,23 +93,43 @@ namespace CustomUIElements
         }
 
 
+        [UxmlAttribute]
+        public bool DebugState
+        {
+            get => debugState;
+            set
+            {
+                if (debugState != value)
+                {
+                    debugState = value;
+                    MarkDirtyRepaint();
+                }
+            }
+        }
+
+
         public Vector2[] ShadowVertexPositions { get; set; }
 
+        protected CustomMesh customMesh;
         private ShadowType showShadow;
-        private float shadowScale;
-        private float shadowOffsetX;
-        private float shadowOffsetY;
-        private Color shadowColor;
-        private int cornerSmooth;
+        private float shadowScale = 1;
+        private float shadowOffsetX = 4.0f;
+        private float shadowOffsetY = 4.0f;
+        private Color shadowColor = new(0, 0, 0, 0.5f);
+        private int cornerSmooth = 4;
+        private bool debugState;
 
 
-        public MeshShadow()
+        public MeshShadowElement()
         {
             generateVisualContent += GenerateMesh;
+            pickingMode = PickingMode.Position;
+            style.backgroundColor = Color.clear;
         }
 
         protected virtual void GenerateMesh(MeshGenerationContext ctx)
         {
+
             if (ShowShadow is ShadowType.Base)
             {
                 var radii = new CornerRadii(resolvedStyle.borderTopLeftRadius, resolvedStyle.borderTopRightRadius,
@@ -118,8 +139,59 @@ namespace CustomUIElements
             }
 
             if (showShadow is ShadowType.TextureBased)
-            {
                 PaintTexturedShadow(ctx, contentRect);
+            
+            var element = GetMeshElement(ctx);
+            if (element is null || customMesh is null) return;
+            element.DrawMeshes(ctx);
+            AllocateMesh(ctx);
+            DrawDebug(ctx);
+        }
+
+        protected virtual MeshShadowElement GetMeshElement(MeshGenerationContext ctx)
+        {
+            return (MeshShadowElement)ctx.visualElement;
+        }
+
+        protected virtual CustomMesh AssignMesh(){ return null; }
+
+        protected virtual void DrawMeshes(MeshGenerationContext ctx)
+        {
+            if (customMesh is null) return;
+            customMesh.Width = contentRect.width;
+            customMesh.Height = contentRect.height;
+            customMesh.Texture = resolvedStyle.backgroundImage.texture;
+            customMesh.TintColor = resolvedStyle.unityBackgroundImageTintColor;
+            AssignCornerRadius();
+            customMesh.UpdateMesh();
+            
+            if (ShowShadow is ShadowType.VerticesBased)
+            {
+                ShadowVertexPositions = new Vector2[customMesh.Vertices.Length];
+                for (var index = 0; index < customMesh.Vertices.Length; index++)
+                    ShadowVertexPositions[index] = customMesh.Vertices[index].position;
+
+                PaintVerticesBasedShadow(ctx, contentRect);
+            }
+        }
+
+        protected virtual void AssignCornerRadius()
+        {
+            customMesh.CornerRadii = new CornerRadii(
+                resolvedStyle.borderTopLeftRadius,
+                resolvedStyle.borderTopRightRadius,
+                resolvedStyle.borderBottomRightRadius,
+                resolvedStyle.borderBottomLeftRadius,
+                CornerSmooth);
+        }
+
+        private void AllocateMesh(MeshGenerationContext ctx)
+        {
+            var mesh = ctx.Allocate(customMesh.Vertices.Length, customMesh.Indices.Length, customMesh.Texture);
+            if (customMesh.Vertices is not null && customMesh.Vertices.Length > 2)
+            {
+                mesh.SetAllVertices(customMesh.Vertices);
+                mesh.SetAllIndices(customMesh.Indices);
             }
         }
 
@@ -170,6 +242,14 @@ namespace CustomUIElements
             // Image
             DrawShadowImageMesh(ctx, tex, shape, rect.center, 1.0f, 0, 0, resolvedStyle.unityBackgroundImageTintColor);
         }
+        
+        protected void CompareAndWrite<T>(ref T field, T newValue)
+        {
+            if (field.Equals(newValue)) return;
+            field = newValue;
+            MarkDirtyRepaint();
+        }
+
 
         private Vector2[] GenerateRoundedRectPath(Rect rect, CornerRadii radii)
         {
@@ -221,7 +301,7 @@ namespace CustomUIElements
             }
         }
 
-        public static void DrawShadowImageMesh(
+        private static void DrawShadowImageMesh(
             MeshGenerationContext ctx,
             Texture2D tex,
             List<Vector2> shapePoints,
@@ -286,6 +366,41 @@ namespace CustomUIElements
             var mesh = ctx.Allocate(verts.Length, tris.Length, tex);
             mesh.SetAllVertices(verts);
             mesh.SetAllIndices(tris);
+        }
+
+        private void DrawDebug(MeshGenerationContext ctx)
+        {
+            if (!DebugState) return;
+            var p2d = ctx.painter2D;
+
+            var verts = customMesh.Vertices;
+            var inds = customMesh.Indices;
+            p2d.strokeColor = Color.red;
+            p2d.lineWidth = 1.5f;
+            for (int i = 0; i < inds.Length; i += 3)
+            {
+                var a = verts[inds[i]].position;
+                var b = verts[inds[i + 1]].position;
+                var c = verts[inds[i + 2]].position;
+                p2d.BeginPath();
+                p2d.MoveTo(a);
+                p2d.LineTo(b);
+                p2d.LineTo(c);
+                p2d.LineTo(a);
+                p2d.ClosePath();
+                p2d.Stroke();
+            }
+
+            for (int i = 0; i < verts.Length; i++)
+            {
+                var pos = verts[i].position;
+                p2d.fillColor = i == 1 ? Color.green : i == verts.Length - 1 ? Color.black : Color.blue;
+                p2d.BeginPath();
+                p2d.MoveTo(pos + new Vector3(3, 0));
+                p2d.Arc(pos, 4, 0, 360);
+                p2d.ClosePath();
+                p2d.Fill();
+            }
         }
 
         public enum ShadowType
