@@ -5,17 +5,6 @@ using UnityEngine.UIElements;
 
 namespace CustomUIElements
 {
-    public struct CornerRadii
-    {
-        public float TopLeft, TopRight, BottomRight, BottomLeft;
-        public CornerRadii(float tl, float tr, float br, float bl)
-        {
-            TopLeft = tl;
-            TopRight = tr;
-            BottomRight = br;
-            BottomLeft = bl;
-        }
-    }
     public class CutoutMesh
     {
         public Vertex[] Vertices { get; private set; }
@@ -110,6 +99,16 @@ namespace CustomUIElements
             }
         }
 
+        public Color TintColor
+        {
+            get => tintColor;
+            set
+            {
+                if(tintColor.Equals(value)) return;
+                tintColor = value;
+                isDirty = true;
+            }
+        }
 
         private float width;
         private float height;
@@ -122,6 +121,7 @@ namespace CustomUIElements
         private float depth;
         private Texture2D texture;
         private CornerRadii cornerRadii;
+        private Color tintColor;
 
 
         public void UpdateMesh()
@@ -151,13 +151,13 @@ namespace CustomUIElements
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Vertex VertexAt(float x, float y, float w, float h)
+        private Vertex VertexAt(float x, float y, float w, float h)
         {
             return new Vertex
             {
                 position = new Vector3(x, y, 0),
-                tint = Color.white,
-                uv = new Vector2(x / w, 1 - y / h)
+                tint = TintColor,
+                uv = new Vector2(x / w, 1 - y / h),
             };
         }
     }

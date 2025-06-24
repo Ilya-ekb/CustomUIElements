@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -7,7 +6,7 @@ namespace CustomUIElements
 {
     public static class CutoutMeshBuilder
     {
-        private static ushort bIndex = 0;
+        private static ushort aIndex = 0;
         private static ushort tLIndex = 0;
         private static ushort tRIndex = 0;
         private static ushort bLIndex = 0;
@@ -21,7 +20,7 @@ namespace CustomUIElements
             Side cutoutSide,
             float baseNorm,
             float offsetNorm,
-            float depthNorm, int arcSegments = 4)
+            float depthNorm)
         {
             float rTL = Mathf.Clamp(radii.TopLeft, 0, Mathf.Min(w, h) / 2);
             float rTR = Mathf.Clamp(radii.TopRight, 0, Mathf.Min(w, h) / 2);
@@ -47,7 +46,7 @@ namespace CustomUIElements
             };
 
 
-            var points = ComputeCorners(w, h, center, rTL, rTR, rBR, rBL, arcSegments);
+            var points = ComputeCorners(w, h, center, rTL, rTR, rBR, rBL, radii.Smooth);
             
             var first = cutoutSide is Side.Top or Side.Right ? baseStart : baseEnd;
             var last = cutoutSide is Side.Top or Side.Right ? baseEnd : baseStart;
@@ -69,16 +68,19 @@ namespace CustomUIElements
                 _ => default
             };
 
-            bIndex = cutoutSide switch
+            aIndex = cutoutSide switch
             {
                 Side.Top => tLIndex,
                 Side.Right => tRIndex,
                 Side.Bottom => bRIndex,
                 Side.Left => bLIndex,
+                _ => default
             };
             
-            points.Insert(bIndex, fPoint);
-            points.Insert(bIndex + 1, lPoint);
+            
+            points.Insert(aIndex, fPoint);
+            points.Insert(aIndex + 1, center);
+            points.Insert(aIndex + 2, lPoint);
             return points;
         }
 
@@ -149,11 +151,11 @@ namespace CustomUIElements
 
             // Триангуляция фаном (работает если контур выпуклый/почти-выпуклый и не пересекается!)
             var inds = new List<ushort>();
+            var a = (ushort)(aIndex + 1);
             for (ushort i = 1; i < n - 1; i++)
             {
-                ushort a = 0;
                 ushort b = i;
-                if (b == bIndex) continue;
+                if (b == aIndex) continue;
                 ushort c = (ushort)(i + 1);
                 inds.Add(a);
                 inds.Add(b);

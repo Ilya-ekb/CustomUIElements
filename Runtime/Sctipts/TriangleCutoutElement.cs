@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 namespace CustomUIElements
 {
     [UxmlElement]
-    public partial class TriangleCutoutElement : VisualElement
+    public partial class TriangleCutoutElement : MeshShadow
     {
         [UxmlAttribute]
         public Side CutoutSide
@@ -63,48 +63,23 @@ namespace CustomUIElements
             }
         }
 
-        [UxmlAttribute]
-        public Color BackgrounColor
-        {
-            get => backgrounColor;
-            set
-            {
-                if (value.Equals(backgrounColor)) return;
-                backgrounColor = value;
-                MarkDirtyRepaint();
-            }
-        }
-
-        [UxmlAttribute]
-        public Texture2D Texture
-        {
-            get => backgroundTexture;
-            set
-            {
-                backgroundTexture = value;
-                MarkDirtyRepaint();
-            }
-        }
-
         private Side cutoutSide = Side.Top;
         private float cutoutOffset = 0.5f;
         private float baseSize = 0.3f;
         private float depth = 0.1f;
-        private Texture2D backgroundTexture;
         private readonly CutoutMesh cutoutMesh;
-        private Color backgrounColor;
         private bool debugState;
 
         public TriangleCutoutElement()
         {
             cutoutMesh = new CutoutMesh(7, 15);
-            generateVisualContent += GenerateMesh;
             pickingMode = PickingMode.Position;
             style.backgroundColor = Color.clear;
         }
 
-        private void GenerateMesh(MeshGenerationContext ctx)
+        protected override void GenerateMesh(MeshGenerationContext ctx)
         {
+            base.GenerateMesh(ctx);
             var element = (TriangleCutoutElement)ctx.visualElement;
             element.DrawMeshes(ctx);
         }
@@ -121,9 +96,19 @@ namespace CustomUIElements
             cutoutMesh.Depth = depth;
             cutoutMesh.CornerRadii = new CornerRadii(
                 resolvedStyle.borderTopLeftRadius, resolvedStyle.borderTopRightRadius,
-                resolvedStyle.borderBottomRightRadius, resolvedStyle.borderBottomLeftRadius);
-            cutoutMesh.Texture = backgroundTexture;
+                resolvedStyle.borderBottomRightRadius, resolvedStyle.borderBottomLeftRadius, CornerSmooth);
+            cutoutMesh.Texture = resolvedStyle.backgroundImage.texture;
+            cutoutMesh.TintColor = resolvedStyle.unityBackgroundImageTintColor;
             cutoutMesh.UpdateMesh();
+            
+            if (ShowShadow is ShadowType.VerticesBased)
+            {
+                ShadowVertexPositions = new Vector2[cutoutMesh.Vertices.Length];
+                for (var index = 0; index < cutoutMesh.Vertices.Length; index++)
+                    ShadowVertexPositions[index] = cutoutMesh.Vertices[index].position;
+
+                PaintVerticesBasedShadow(ctx, rect);
+            }
 
             var mesh = ctx.Allocate(cutoutMesh.Vertices.Length, cutoutMesh.Indices.Length, cutoutMesh.Texture);
             mesh.SetAllVertices(cutoutMesh.Vertices);
@@ -161,7 +146,7 @@ namespace CustomUIElements
                 p2d.Fill();
             }
         }
-
+    
         [UxmlAttribute]
         public bool DebugState
         {
