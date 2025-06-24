@@ -223,7 +223,7 @@ namespace CustomUIElements
 
         protected void PaintTexturedShadow(MeshGenerationContext ctx, Rect rect)
         {
-            var tex = resolvedStyle.backgroundImage.texture;
+            var tex = resolvedStyle.backgroundImage.texture ?? resolvedStyle.backgroundImage.sprite.texture;
             if (tex is null) return;
 
             var radii = new CornerRadii(
