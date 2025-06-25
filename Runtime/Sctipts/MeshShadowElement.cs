@@ -226,7 +226,7 @@ namespace CustomUIElements
             if (resolvedStyle.backgroundImage.sprite is not null)
             {
                 var sprite = resolvedStyle.backgroundImage.sprite;
-                DrawBySprite(ctx, sprite, resolvedStyle.unityBackgroundImageTintColor);   
+                DrawBySprite(ctx, sprite, ShadowScale, ShadowOffsetX, ShadowOffsetY, resolvedStyle.unityBackgroundImageTintColor, ShadowColor);   
                 return;
             }
             
@@ -308,17 +308,33 @@ namespace CustomUIElements
             }
         }
 
-        private static void DrawBySprite(MeshGenerationContext ctx, Sprite sprite, Color color)
+        private static void DrawBySprite(
+            MeshGenerationContext ctx,
+            Sprite sprite,
+            float scale,
+            float offsetX,
+            float offsetY,
+            Color tintColor, Color shadowColor)
         {
             if(sprite is null) return;
             var mesh = ctx.Allocate(sprite.vertices.Length, sprite.triangles.Length, sprite.texture);
             var vertices = new Vertex[sprite.vertices.Length];
+            var shwVertices = new Vertex[sprite.vertices.Length];
             for (int i = 0; i < sprite.vertices.Length; i++)
             {
                 vertices[i] = new Vertex
                 {   
                     position = sprite.vertices[i],
-                    tint = color,
+                    tint = tintColor,
+                    uv = sprite.uv[i]
+                };
+                var pos = (sprite.vertices[i] - sprite.rect.center) * scale + sprite.rect.center;
+                pos.x += offsetX;
+                pos.y += offsetY;
+                shwVertices[i] = new Vertex
+                {
+                    position = pos,
+                    tint = shadowColor,
                     uv = sprite.uv[i]
                 };
             }
