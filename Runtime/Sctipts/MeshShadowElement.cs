@@ -238,13 +238,6 @@ namespace CustomUIElements
 
         protected void PaintTexturedShadow(MeshGenerationContext ctx, Rect rect)
         {
-            if (resolvedStyle.backgroundImage.sprite is not null)
-            {
-                var sprite = resolvedStyle.backgroundImage.sprite;
-                DrawBySprite(ctx, sprite, ShadowScale, ShadowOffsetX, ShadowOffsetY, resolvedStyle.unityBackgroundImageTintColor, ShadowColor);   
-                return;
-            }
-            
             var tex = resolvedStyle.backgroundImage.texture;
             if (tex is null) return;
 
