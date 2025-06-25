@@ -46,7 +46,7 @@ namespace CustomUIElements
             var radii = CornerRadii;
             
             var contour = CutoutMeshBuilder.GenerateCutoutContour(w, h, radii, cutoutSide, baseSize, cutoutOffset, depth);
-            CutoutMeshBuilder.BuildMesh(contour, w, h, out var vertices, out var indices);
+            CutoutMeshBuilder.BuildMesh(contour, w, h, TintColor, out var vertices, out var indices);
             Vertices = vertices.ToArray();
             Indices = indices.ToArray();
             
