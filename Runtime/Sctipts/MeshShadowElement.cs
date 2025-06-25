@@ -218,7 +218,7 @@ namespace CustomUIElements
                 var center = rect.center;
                 var shadowPainter = ctx.painter2D;
 
-                shadowPainter.fillColor = shadowColor;
+                shadowPainter.fillColor = ShadowColor;
 
                 shadowPainter.BeginPath();
                 for (int i = 1; i < ShadowVertexPositions.Length; i++)
