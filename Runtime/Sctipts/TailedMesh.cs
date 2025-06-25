@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -38,6 +39,14 @@ namespace CustomUIElements
 
             w -= TailDepthPx;
             var contour = CutoutMeshBuilder.GenerateCutoutContour(w, h, radii, СutoutSide, BaseSize, CutoutOffset, Depth);
+            static void ShiftRight<T>(List<T> list)
+            {
+                if (list == null || list.Count <= 1) return;
+                T last = list[list.Count - 1];
+                list.RemoveAt(list.Count - 1);
+                list.Insert(0, last);
+            }
+            
             if (TailedSide is TailedCutoutElement.TailSide.BottomLeft or TailedCutoutElement.TailSide.TopLeft)
                 for (var index = 0; index < contour.Count; index++)
                 {
@@ -45,8 +54,9 @@ namespace CustomUIElements
                     c.x += TailDepthPx;
                     contour[index] = c;
                 }
+            if(TailedSide == TailedCutoutElement.TailSide.TopLeft) ShiftRight(contour);
 
-            CutoutMeshBuilder.BuildMesh(contour, Width, Height, out var vertices, out var indices);
+            CutoutMeshBuilder.BuildMesh(contour, Width, Height, TintColor, out var vertices, out var indices);
             var aPoint = tailSide switch
             {
                 TailedCutoutElement.TailSide.TopLeft => new Vector2(TailDepthPx, TailBasePx),
@@ -77,21 +87,21 @@ namespace CustomUIElements
             vertices.Add(new Vertex
             {
                 position = aPoint,
-                tint = Color.white,
+                tint = TintColor,
                 uv = new Vector2(aPoint.x / Width, 1f - aPoint.y / Height)
             });
 
             vertices.Add(new Vertex
             {
                 position = bPoint,
-                tint = Color.white,
+                tint = TintColor,
                 uv = new Vector2(bPoint.x / Width, 1f - bPoint.y / Height)
             });
 
             vertices.Add(new Vertex
             {
                 position = cPoint,
-                tint = Color.white,
+                tint = TintColor,
                 uv = new Vector2(cPoint.x / Width, 1f - cPoint.y / Height)
             });
 
