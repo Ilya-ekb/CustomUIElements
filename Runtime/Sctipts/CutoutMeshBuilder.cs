@@ -128,8 +128,7 @@ namespace CustomUIElements
             }
         }
 
-        public static void BuildMesh(List<Vector2> contour, float w, float h, out List<Vertex> vertices,
-            out List<ushort> indices)
+        public static void BuildMesh(List<Vector2> contour, float w, float h, Color tint, out List<Vertex> vertices, out List<ushort> indices)
         {
             int n = contour.Count;
             vertices = new List<Vertex>(n);
@@ -138,7 +137,7 @@ namespace CustomUIElements
                 vertices.Add(new Vertex
                 {
                     position = new Vector3(contour[i].x, contour[i].y, 0),
-                    tint = Color.white,
+                    tint = tint,
                     uv = new Vector2(contour[i].x / w, 1f - contour[i].y / h)
                 });
             }
