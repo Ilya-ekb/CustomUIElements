@@ -223,7 +223,14 @@ namespace CustomUIElements
 
         protected void PaintTexturedShadow(MeshGenerationContext ctx, Rect rect)
         {
-            var tex = resolvedStyle.backgroundImage.texture ?? resolvedStyle.backgroundImage.sprite.texture;
+            if (resolvedStyle.backgroundImage.sprite is not null)
+            {
+                var sprite = resolvedStyle.backgroundImage.sprite;
+                DrawBySprite(ctx, sprite, resolvedStyle.unityBackgroundImageTintColor);   
+                return;
+            }
+            
+            var tex = resolvedStyle.backgroundImage.texture;
             if (tex is null) return;
 
             var radii = new CornerRadii(
@@ -301,6 +308,24 @@ namespace CustomUIElements
             }
         }
 
+        private static void DrawBySprite(MeshGenerationContext ctx, Sprite sprite, Color color)
+        {
+            if(sprite is null) return;
+            var mesh = ctx.Allocate(sprite.vertices.Length, sprite.triangles.Length, sprite.texture);
+            var vertices = new Vertex[sprite.vertices.Length];
+            for (int i = 0; i < sprite.vertices.Length; i++)
+            {
+                vertices[i] = new Vertex
+                {   
+                    position = sprite.vertices[i],
+                    tint = color,
+                    uv = sprite.uv[i]
+                };
+            }
+            mesh.SetAllVertices(vertices);
+            mesh.SetAllIndices(sprite.triangles);
+        }
+
         private static void DrawShadowImageMesh(
             MeshGenerationContext ctx,
             Texture2D tex,
@@ -313,11 +338,11 @@ namespace CustomUIElements
         {
             if (shapePoints == null || shapePoints.Count < 3) return;
 
-            // Генерируем вершины
+
             var verts = new Vertex[shapePoints.Count];
             var rectMin = new Vector2(float.MaxValue, float.MaxValue);
             var rectMax = new Vector2(float.MinValue, float.MinValue);
-            // Найти bounds для UV
+
             for (int i = 0; i < shapePoints.Count; i++)
             {
                 if (shapePoints[i].x < rectMin.x) rectMin.x = shapePoints[i].x;
