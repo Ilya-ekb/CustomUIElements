@@ -67,6 +67,20 @@ namespace CustomUIElements
         }
 
         [UxmlAttribute]
+        public Color TintColor
+        {
+            get => tintColor;
+            set
+            {
+                if (tintColor != value)
+                {
+                    tintColor = value;
+                    MarkDirtyRepaint();
+                }
+            }
+        }
+
+        [UxmlAttribute]
         public Color ShadowColor
         {
             get => shadowColor;
@@ -118,6 +132,7 @@ namespace CustomUIElements
         private Color shadowColor = new(0, 0, 0, 0.5f);
         private int cornerSmooth = 4;
         private bool debugState;
+        private Color tintColor;
 
 
         public MeshShadowElement()
@@ -161,10 +176,10 @@ namespace CustomUIElements
             customMesh.Width = contentRect.width;
             customMesh.Height = contentRect.height;
             customMesh.Texture = resolvedStyle.backgroundImage.texture;
-            customMesh.TintColor = resolvedStyle.unityBackgroundImageTintColor;
+            customMesh.TintColor = TintColor;
             AssignCornerRadius();
             customMesh.UpdateMesh();
-            
+
             if (ShowShadow is ShadowType.VerticesBased)
             {
                 ShadowVertexPositions = new Vector2[customMesh.Vertices.Length];
@@ -208,8 +223,8 @@ namespace CustomUIElements
                 shadowPainter.BeginPath();
                 for (int i = 1; i < ShadowVertexPositions.Length; i++)
                 {
-                    // Смещение и масштаб тени
                     Vector2 pos = ShadowVertexPositions[i];
+                    
                     pos = center + (pos - center) * shadowScale;
                     pos.x += shadowOffsetX;
                     pos.y += shadowOffsetY;
@@ -249,7 +264,7 @@ namespace CustomUIElements
             // Image
             DrawShadowImageMesh(ctx, tex, shape, rect.center, 1.0f, 0, 0, resolvedStyle.unityBackgroundImageTintColor);
         }
-        
+
         protected void CompareAndWrite<T>(ref T field, T newValue)
         {
             if (field.Equals(newValue)) return;
@@ -308,43 +323,6 @@ namespace CustomUIElements
             }
         }
 
-        private static void DrawBySprite(
-            MeshGenerationContext ctx,
-            Sprite sprite,
-            float scale,
-            float offsetX,
-            float offsetY,
-            Color tintColor, Color shadowColor)
-        {
-            if(sprite is null) return;
-            var vertices = new Vertex[sprite.vertices.Length];
-            var shwVertices = new Vertex[sprite.vertices.Length];
-            for (int i = 0; i < sprite.vertices.Length; i++)
-            {
-                vertices[i] = new Vertex
-                {   
-                    position = sprite.vertices[i],
-                    tint = tintColor,
-                    uv = sprite.uv[i]
-                };
-                var pos = (sprite.vertices[i] - sprite.rect.center) * scale + sprite.rect.center;
-                pos.x += offsetX;
-                pos.y += offsetY;
-                shwVertices[i] = new Vertex
-                {
-                    position = pos,
-                    tint = shadowColor,
-                    uv = sprite.uv[i]
-                };
-            }
-            var shwMesh = ctx.Allocate(sprite.vertices.Length, sprite.triangles.Length, sprite.texture);
-            shwMesh.SetAllVertices(shwVertices);
-            shwMesh.SetAllIndices(sprite.triangles);
-            var mesh = ctx.Allocate(sprite.vertices.Length, sprite.triangles.Length, sprite.texture);
-            mesh.SetAllVertices(vertices);
-            mesh.SetAllIndices(sprite.triangles);
-        }
-
         private static void DrawShadowImageMesh(
             MeshGenerationContext ctx,
             Texture2D tex,
@@ -399,7 +377,7 @@ namespace CustomUIElements
             }
 
             var hole = new List<int>(shapePoints.Count * 2);
-            // Триангуляция shapePoints (можно сторонними либами, тут — EarcutLite)
+
             var indices = Earcut.Tessellate(flat, hole);
 
             // Convert indices to ushort[]
@@ -438,10 +416,14 @@ namespace CustomUIElements
             for (int i = 0; i < verts.Length; i++)
             {
                 var pos = verts[i].position;
-                p2d.fillColor = i == 1 ? Color.green : i == verts.Length - 1 ? Color.black : Color.blue;
+                p2d.fillColor = i == 1 ? Color.green :
+                    i == verts.Length - 1 ? Color.black :
+                    i == verts.Length - 2 ? Color.red :
+                    i == verts.Length - 3 ? Color.yellow : Color.blue;
                 p2d.BeginPath();
                 p2d.MoveTo(pos + new Vector3(3, 0));
-                p2d.Arc(pos, 4, 0, 360);
+                var radius = i == 1 ? 6 : 4;
+                p2d.Arc(pos, radius, 0, 360);
                 p2d.ClosePath();
                 p2d.Fill();
             }
