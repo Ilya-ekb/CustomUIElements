@@ -317,7 +317,6 @@ namespace CustomUIElements
             Color tintColor, Color shadowColor)
         {
             if(sprite is null) return;
-            var mesh = ctx.Allocate(sprite.vertices.Length, sprite.triangles.Length, sprite.texture);
             var vertices = new Vertex[sprite.vertices.Length];
             var shwVertices = new Vertex[sprite.vertices.Length];
             for (int i = 0; i < sprite.vertices.Length; i++)
@@ -338,6 +337,10 @@ namespace CustomUIElements
                     uv = sprite.uv[i]
                 };
             }
+            var shwMesh = ctx.Allocate(sprite.vertices.Length, sprite.triangles.Length, sprite.texture);
+            shwMesh.SetAllVertices(shwVertices);
+            shwMesh.SetAllIndices(sprite.triangles);
+            var mesh = ctx.Allocate(sprite.vertices.Length, sprite.triangles.Length, sprite.texture);
             mesh.SetAllVertices(vertices);
             mesh.SetAllIndices(sprite.triangles);
         }
