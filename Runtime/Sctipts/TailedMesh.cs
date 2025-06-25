@@ -39,13 +39,6 @@ namespace CustomUIElements
 
             w -= TailDepthPx;
             var contour = CutoutMeshBuilder.GenerateCutoutContour(w, h, radii, СutoutSide, BaseSize, CutoutOffset, Depth);
-            static void ShiftRight<T>(List<T> list)
-            {
-                if (list == null || list.Count <= 1) return;
-                T last = list[list.Count - 1];
-                list.RemoveAt(list.Count - 1);
-                list.Insert(0, last);
-            }
             
             if (TailedSide is TailedCutoutElement.TailSide.BottomLeft or TailedCutoutElement.TailSide.TopLeft)
                 for (var index = 0; index < contour.Count; index++)
@@ -54,7 +47,6 @@ namespace CustomUIElements
                     c.x += TailDepthPx;
                     contour[index] = c;
                 }
-            if(TailedSide == TailedCutoutElement.TailSide.TopLeft) ShiftRight(contour);
 
             CutoutMeshBuilder.BuildMesh(contour, Width, Height, TintColor, out var vertices, out var indices);
             var aPoint = tailSide switch

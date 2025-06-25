@@ -8,11 +8,25 @@ namespace CustomUIElements
     public partial class TailedCutoutElement : TriangleCutoutElement
     {
         [UxmlAttribute]
-        public TailSide TailedSide{ get => tailSide; set => CompareAndWrite(ref tailSide, value); }
+        public TailSide TailedSide
+        {
+            get => tailSide;
+            set => CompareAndWrite(ref tailSide, value);
+        }
+
         [UxmlAttribute]
-        public float TailBasePx{ get => tailBasePx; set => CompareAndWrite(ref tailBasePx, value); }
+        public float TailBasePx
+        {
+            get => tailBasePx;
+            set => CompareAndWrite(ref tailBasePx, value);
+        }
+
         [UxmlAttribute]
-        public float TailDepthPx{ get => tailDepth; set => CompareAndWrite(ref tailDepth, value); }
+        public float TailDepthPx
+        {
+            get => tailDepth;
+            set => CompareAndWrite(ref tailDepth, value);
+        }
 
         private TailSide tailSide;
         private float tailBasePx;
@@ -79,8 +93,39 @@ namespace CustomUIElements
                     CornerSmooth)
             };
         }
-        
-        
+
+        protected override void PaintVerticesBasedShadow(MeshGenerationContext ctx, Rect rect)
+        {
+            if (ShadowVertexPositions is not null && ShadowVertexPositions.Length > 2 && ShadowScale > 0f &&
+                ShadowColor.a > 0.01f)
+            {
+                var center = rect.center;
+                var shadowPainter = ctx.painter2D;
+
+                shadowPainter.fillColor = ShadowColor;
+                var startPoint = ShadowVertexPositions[1];
+                startPoint = center + (startPoint - center) * ShadowScale;
+                startPoint.x += ShadowOffsetX;
+                startPoint.y += ShadowOffsetY;
+
+                shadowPainter.BeginPath();
+                shadowPainter.MoveTo(startPoint);
+                for (int i = 2; i < ShadowVertexPositions.Length - 3; i++)
+                    shadowPainter.LineTo(ComputeShadowPointPosition(ShadowVertexPositions[i], center));
+
+
+                var aPoint = ComputeShadowPointPosition(ShadowVertexPositions[^3], center);
+                var bPoint = ComputeShadowPointPosition(ShadowVertexPositions[^2], center);
+                var cPoint = ComputeShadowPointPosition(ShadowVertexPositions[^1], center);
+                shadowPainter.MoveTo(aPoint);
+                shadowPainter.LineTo(bPoint);
+                shadowPainter.LineTo(cPoint);
+
+                shadowPainter.ClosePath();
+                shadowPainter.Fill();
+            }
+        }
+
 
         public enum TailSide
         {

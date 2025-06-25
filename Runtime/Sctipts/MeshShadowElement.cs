@@ -144,7 +144,6 @@ namespace CustomUIElements
 
         protected virtual void GenerateMesh(MeshGenerationContext ctx)
         {
-
             if (ShowShadow is ShadowType.Base)
             {
                 var radii = new CornerRadii(resolvedStyle.borderTopLeftRadius, resolvedStyle.borderTopRightRadius,
@@ -155,7 +154,7 @@ namespace CustomUIElements
 
             if (showShadow is ShadowType.TextureBased)
                 PaintTexturedShadow(ctx, contentRect);
-            
+
             var element = GetMeshElement(ctx);
             if (element is null || customMesh is null) return;
             element.DrawMeshes(ctx);
@@ -168,7 +167,10 @@ namespace CustomUIElements
             return (MeshShadowElement)ctx.visualElement;
         }
 
-        protected virtual CustomMesh AssignMesh(){ return null; }
+        protected virtual CustomMesh AssignMesh()
+        {
+            return null;
+        }
 
         protected virtual void DrawMeshes(MeshGenerationContext ctx)
         {
@@ -210,7 +212,7 @@ namespace CustomUIElements
             }
         }
 
-        protected void PaintVerticesBasedShadow(MeshGenerationContext ctx, Rect rect)
+        protected virtual void PaintVerticesBasedShadow(MeshGenerationContext ctx, Rect rect)
         {
             if (ShadowVertexPositions is not null && ShadowVertexPositions.Length > 2 && shadowScale > 0f &&
                 shadowColor.a > 0.01f)
@@ -219,18 +221,18 @@ namespace CustomUIElements
                 var shadowPainter = ctx.painter2D;
 
                 shadowPainter.fillColor = ShadowColor;
+                var startPoint = ShadowVertexPositions[1];
+                startPoint = center + (startPoint - center) * shadowScale;
+                startPoint.x += shadowOffsetX;
+                startPoint.y += shadowOffsetY;
 
                 shadowPainter.BeginPath();
-                for (int i = 1; i < ShadowVertexPositions.Length; i++)
-                {
-                    Vector2 pos = ShadowVertexPositions[i];
-                    
-                    pos = center + (pos - center) * shadowScale;
-                    pos.x += shadowOffsetX;
-                    pos.y += shadowOffsetY;
-                    shadowPainter.LineTo(pos);
-                }
+                shadowPainter.MoveTo(startPoint);
+                
+                for (var i = 2; i < ShadowVertexPositions.Length; i++)
+                    shadowPainter.LineTo(ComputeShadowPointPosition(ShadowVertexPositions[i], center));
 
+                shadowPainter.MoveTo(startPoint);
                 shadowPainter.ClosePath();
                 shadowPainter.Fill();
             }
@@ -263,6 +265,14 @@ namespace CustomUIElements
             if (field.Equals(newValue)) return;
             field = newValue;
             MarkDirtyRepaint();
+        }
+
+        protected Vector2 ComputeShadowPointPosition(in Vector2 inPos, Vector2 center)
+        {
+            var result = center + (inPos - center) * ShadowScale;
+            result.x += ShadowOffsetX;
+            result.y += ShadowOffsetY;
+            return result;
         }
 
 
