@@ -19,17 +19,18 @@ namespace CustomUIElements
             float offsetNorm,
             float depthNorm)
         {
-            float rTL = Mathf.Clamp(radii.TopLeft, 0, Mathf.Min(w, h) / 2);
-            float rTR = Mathf.Clamp(radii.TopRight, 0, Mathf.Min(w, h) / 2);
-            float rBR = Mathf.Clamp(radii.BottomRight, 0, Mathf.Min(w, h) / 2);
-            float rBL = Mathf.Clamp(radii.BottomLeft, 0, Mathf.Min(w, h) / 2);
+            var minSide = Mathf.Min(w, h);
+            float rTL = Mathf.Clamp(radii.TopLeft, 0, minSide / 2);
+            float rTR = Mathf.Clamp(radii.TopRight, 0, minSide / 2);
+            float rBR = Mathf.Clamp(radii.BottomRight, 0, minSide / 2);
+            float rBL = Mathf.Clamp(radii.BottomLeft, 0, minSide / 2);
 
             float sideWidth = cutoutSide is Side.Top or Side.Bottom ? w : h;
             float sideHeight = cutoutSide is Side.Top or Side.Bottom ? h : w;
 
-            var basePx = Mathf.Clamp(baseNorm * sideWidth, 0, sideWidth);
+            var basePx = Mathf.Clamp(baseNorm * minSide, 0, minSide);
             var offsetPx = Mathf.Clamp(offsetNorm * sideWidth - basePx, 0, sideWidth - basePx);
-            var depthPx = Mathf.Clamp(depthNorm * sideHeight, 0, sideHeight);
+            var depthPx = Mathf.Clamp(depthNorm * minSide, 0, minSide);           
             var baseStart = offsetPx;
             var baseEnd = baseStart + basePx;
             var baseMid = baseStart + basePx * 0.5f;

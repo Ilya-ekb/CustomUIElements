@@ -146,14 +146,20 @@ namespace CustomUIElements
         {
             if (ShowShadow is ShadowType.Base)
             {
-                var radii = new CornerRadii(resolvedStyle.borderTopLeftRadius, resolvedStyle.borderTopRightRadius,
-                    resolvedStyle.borderBottomRightRadius, resolvedStyle.borderBottomLeftRadius, cornerSmooth);
+                var radii = new CornerRadii(resolvedStyle.borderTopLeftRadius,
+                    resolvedStyle.borderTopRightRadius,
+                    resolvedStyle.borderBottomRightRadius,
+                    resolvedStyle.borderBottomLeftRadius, 
+                    cornerSmooth);
                 ShadowVertexPositions = GenerateRoundedRectPath(contentRect, radii);
                 PaintVerticesBasedShadow(ctx, contentRect);
             }
 
             if (showShadow is ShadowType.TextureBased)
                 PaintTexturedShadow(ctx, contentRect);
+
+            if (ShowShadow is ShadowType.SpriteBased)
+                PaintSpriteShadow(ctx, contentRect);
 
             var element = GetMeshElement(ctx);
             if (element is null || customMesh is null) return;
@@ -228,7 +234,7 @@ namespace CustomUIElements
 
                 shadowPainter.BeginPath();
                 shadowPainter.MoveTo(startPoint);
-                
+
                 for (var i = 2; i < ShadowVertexPositions.Length; i++)
                     shadowPainter.LineTo(ComputeShadowPointPosition(ShadowVertexPositions[i], center));
 
@@ -238,7 +244,14 @@ namespace CustomUIElements
             }
         }
 
-        protected void PaintTexturedShadow(MeshGenerationContext ctx, Rect rect)
+        protected void CompareAndWrite<T>(ref T field, T newValue)
+        {
+            if (field.Equals(newValue)) return;
+            field = newValue;
+            MarkDirtyRepaint();
+        }
+
+        private void PaintTexturedShadow(MeshGenerationContext ctx, Rect rect)
         {
             var tex = resolvedStyle.backgroundImage.texture;
             if (tex is null) return;
@@ -254,18 +267,29 @@ namespace CustomUIElements
             var shape = GenerateRoundedRectPath(rect, radii).ToList();
 
             // Shadow
-            DrawShadowImageMesh(ctx, tex, shape, rect.center, shadowScale, shadowOffsetX, shadowOffsetY, shadowColor);
+            DrawTextureShadow(ctx, tex, shape, rect.center, shadowScale, shadowOffsetX, shadowOffsetY, shadowColor);
 
             // Image
-            DrawShadowImageMesh(ctx, tex, shape, rect.center, 1.0f, 0, 0, resolvedStyle.unityBackgroundImageTintColor);
+            DrawTextureShadow(ctx, tex, shape, rect.center, 1.0f, 0, 0, resolvedStyle.unityBackgroundImageTintColor);
         }
 
-        protected void CompareAndWrite<T>(ref T field, T newValue)
+
+        private void PaintSpriteShadow(MeshGenerationContext ctx, Rect rect)
         {
-            if (field.Equals(newValue)) return;
-            field = newValue;
-            MarkDirtyRepaint();
+            var sprite = resolvedStyle.backgroundImage.sprite;
+            if (sprite is null) return;
+            var radii = new CornerRadii(
+                resolvedStyle.borderTopLeftRadius,
+                resolvedStyle.borderTopRightRadius,
+                resolvedStyle.borderBottomRightRadius,
+                resolvedStyle.borderBottomLeftRadius,
+                CornerSmooth
+            );
+
+            var shape = GenerateRoundedRectPath(rect, radii).ToList();
+            DrawSpriteShadow(ctx, sprite, rect.center, ShadowScale, ShadowOffsetX, ShadowOffsetY, ShadowColor);
         }
+
 
         protected Vector2 ComputeShadowPointPosition(in Vector2 inPos, Vector2 center)
         {
@@ -326,7 +350,7 @@ namespace CustomUIElements
             }
         }
 
-        private static void DrawShadowImageMesh(
+        private static void DrawTextureShadow(
             MeshGenerationContext ctx,
             Texture2D tex,
             List<Vector2> shapePoints,
@@ -353,12 +377,10 @@ namespace CustomUIElements
 
             for (int i = 0; i < shapePoints.Count; i++)
             {
-                // Масштабируем и смещаем относительно центра (для тени)
                 var pos = (shapePoints[i] - center) * scale + center;
                 pos.x += offsetX;
                 pos.y += offsetY;
 
-                // Вычисляем UV в прямоугольнике исходной формы
                 var uv = new Vector2(
                     Mathf.InverseLerp(rectMin.x, rectMax.x, shapePoints[i].x),
                     1f - Mathf.InverseLerp(rectMin.y, rectMax.y, shapePoints[i].y)
@@ -383,7 +405,6 @@ namespace CustomUIElements
 
             var indices = Earcut.Tessellate(flat, hole);
 
-            // Convert indices to ushort[]
             var tris = new ushort[indices.Count];
             for (int i = 0; i < indices.Count; i++)
                 tris[i] = (ushort)indices[i];
@@ -391,6 +412,44 @@ namespace CustomUIElements
             var mesh = ctx.Allocate(verts.Length, tris.Length, tex);
             mesh.SetAllVertices(verts);
             mesh.SetAllIndices(tris);
+        }
+
+        private static void DrawSpriteShadow(
+            MeshGenerationContext ctx,
+            Sprite sprite,
+            Vector2 center, float scale,
+            float offsetX,
+            float offsetY,
+            Color color
+        )
+        {
+            var vertices = sprite.vertices;
+            var uvs = sprite.uv;
+            var triangles = sprite.triangles;
+            int count = vertices.Length;
+            if (count < 3) return;
+
+            var verts = new Vertex[count];
+
+            // Sprite.vertices заданы в пикселях относительно sprite.pivot (левый нижний угол — (0,0))
+            // Нам нужно отцентрировать mesh относительно center (например, rect.center UI)
+            var pivot = sprite.pivot; // в пикселях!
+            for (int i = 0; i < count; i++)
+            {
+                Vector2 local = vertices[i] - pivot;
+                Vector2 pos = local * scale + center + new Vector2(offsetX, offsetY);
+
+                verts[i] = new Vertex
+                {
+                    position = new Vector3(pos.x, pos.y, 0),
+                    tint = color,
+                    uv = uvs[i]
+                };
+            }
+
+            var mesh = ctx.Allocate(verts.Length, triangles.Length, sprite.texture);
+            mesh.SetAllVertices(verts);
+            mesh.SetAllIndices(triangles);
         }
 
         private void DrawDebug(MeshGenerationContext ctx)
@@ -438,6 +497,7 @@ namespace CustomUIElements
             Base,
             VerticesBased,
             TextureBased,
+            SpriteBased,
         }
     }
 }

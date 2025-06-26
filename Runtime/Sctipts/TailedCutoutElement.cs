@@ -1,4 +1,4 @@
-using System.Net.NetworkInformation;
+using UnityEditor.TerrainTools;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -14,27 +14,30 @@ namespace CustomUIElements
             set => CompareAndWrite(ref tailSide, value);
         }
 
-        [UxmlAttribute]
-        public float TailBasePx
+        [UxmlAttribute, Range(0f, 1f)]
+        public float TailBase
         {
-            get => tailBasePx;
-            set => CompareAndWrite(ref tailBasePx, value);
+            get => tailBase;
+            set => CompareAndWrite(ref tailBase, value);
         }
-
-        [UxmlAttribute]
-        public float TailDepthPx
-        {
-            get => tailDepth;
-            set => CompareAndWrite(ref tailDepth, value);
-        }
+        
+        public float TailBasePx { private get; set; }
 
         private TailSide tailSide;
-        private float tailBasePx;
-        private float tailDepth;
+        private float tailBase;
 
         public TailedCutoutElement()
         {
             customMesh = new TailedMesh();
+            RegisterCallback<GeometryChangedEvent>(OnFirstGeometryChanged);
+            return;
+
+            void OnFirstGeometryChanged(GeometryChangedEvent evt)
+            {
+                UnregisterCallback<GeometryChangedEvent>(OnFirstGeometryChanged);
+                if (customMesh is TailedMesh tailMesh)
+                    TailBasePx = TailBase * Mathf.Min(contentRect.width, contentRect.height);
+            }
         }
 
         protected override MeshShadowElement GetMeshElement(MeshGenerationContext ctx)
@@ -51,24 +54,24 @@ namespace CustomUIElements
         {
             customMesh ??= AssignMesh();
             var tailedMesh = (TailedMesh)customMesh;
-            tailedMesh.TailBasePx = tailBasePx;
+            tailedMesh.TailBasePx = Mathf.Min(TailBasePx, contentRect.height);
             tailedMesh.TailedSide = TailedSide;
-            tailedMesh.TailDepthPx = TailDepthPx;
             base.DrawMeshes(ctx);
         }
 
         protected override void AssignCornerRadius()
         {
+            var minSide = Mathf.Min(contentRect.height, contentRect.width);
             customMesh.CornerRadii = tailSide switch
             {
                 TailSide.TopLeft => new CornerRadii(
                     0,
                     resolvedStyle.borderTopRightRadius,
                     resolvedStyle.borderBottomRightRadius,
-                    resolvedStyle.borderBottomLeftRadius,
+                    Mathf.Min(resolvedStyle.borderBottomLeftRadius, contentRect.height - TailBasePx),
                     CornerSmooth),
                 TailSide.BottomLeft => new CornerRadii(
-                    resolvedStyle.borderTopLeftRadius,
+                    Mathf.Min(resolvedStyle.borderTopLeftRadius, TailBasePx),
                     resolvedStyle.borderTopRightRadius,
                     resolvedStyle.borderBottomRightRadius,
                     0,
@@ -76,7 +79,7 @@ namespace CustomUIElements
                 TailSide.TopRight => new CornerRadii(
                     resolvedStyle.borderTopLeftRadius,
                     0,
-                    resolvedStyle.borderBottomRightRadius,
+                    Mathf.Min(resolvedStyle.borderBottomRightRadius, contentRect.height - TailBasePx),
                     resolvedStyle.borderBottomLeftRadius,
                     CornerSmooth),
                 TailSide.BottomRight => new CornerRadii(
