@@ -149,7 +149,7 @@ namespace CustomUIElements
                 var radii = new CornerRadii(resolvedStyle.borderTopLeftRadius,
                     resolvedStyle.borderTopRightRadius,
                     resolvedStyle.borderBottomRightRadius,
-                    resolvedStyle.borderBottomLeftRadius, 
+                    resolvedStyle.borderBottomLeftRadius,
                     cornerSmooth);
                 ShadowVertexPositions = GenerateRoundedRectPath(contentRect, radii);
                 PaintVerticesBasedShadow(ctx, contentRect);
@@ -183,7 +183,7 @@ namespace CustomUIElements
             if (customMesh is null) return;
             customMesh.Width = contentRect.width;
             customMesh.Height = contentRect.height;
-            customMesh.Texture = resolvedStyle.backgroundImage.texture;
+            customMesh.Texture = resolvedStyle.backgroundImage.texture ?? resolvedStyle.backgroundImage.sprite?.texture;
             customMesh.TintColor = TintColor;
             AssignCornerRadius();
             customMesh.UpdateMesh();
@@ -220,28 +220,25 @@ namespace CustomUIElements
 
         protected virtual void PaintVerticesBasedShadow(MeshGenerationContext ctx, Rect rect)
         {
-            if (ShadowVertexPositions is not null && ShadowVertexPositions.Length > 2 && shadowScale > 0f &&
-                shadowColor.a > 0.01f)
-            {
-                var center = rect.center;
-                var shadowPainter = ctx.painter2D;
+            if (ShadowVertexPositions is null || ShadowVertexPositions.Length <= 2 || !(shadowScale > 0f) || !(shadowColor.a > 0.01f)) return;
+            var center = rect.center;
+            var shadowPainter = ctx.painter2D;
 
-                shadowPainter.fillColor = ShadowColor;
-                var startPoint = ShadowVertexPositions[1];
-                startPoint = center + (startPoint - center) * shadowScale;
-                startPoint.x += shadowOffsetX;
-                startPoint.y += shadowOffsetY;
+            shadowPainter.fillColor = ShadowColor;
+            var startPoint = ShadowVertexPositions[1];
+            startPoint = center + (startPoint - center) * shadowScale;
+            startPoint.x += shadowOffsetX;
+            startPoint.y += shadowOffsetY;
 
-                shadowPainter.BeginPath();
-                shadowPainter.MoveTo(startPoint);
+            shadowPainter.BeginPath();
+            shadowPainter.MoveTo(startPoint);
 
-                for (var i = 2; i < ShadowVertexPositions.Length; i++)
-                    shadowPainter.LineTo(ComputeShadowPointPosition(ShadowVertexPositions[i], center));
+            for (var i = 2; i < ShadowVertexPositions.Length; i++)
+                shadowPainter.LineTo(ComputeShadowPointPosition(ShadowVertexPositions[i], center));
 
-                shadowPainter.MoveTo(startPoint);
-                shadowPainter.ClosePath();
-                shadowPainter.Fill();
-            }
+            shadowPainter.MoveTo(startPoint);
+            shadowPainter.ClosePath();
+            shadowPainter.Fill();
         }
 
         protected void CompareAndWrite<T>(ref T field, T newValue)
