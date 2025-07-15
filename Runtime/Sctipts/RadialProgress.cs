@@ -53,6 +53,7 @@ namespace CustomUIElements
         [UxmlAttribute]
         public bool showProgress
         {
+            get => m_Label.style.display == DisplayStyle.Flex;
             set
             {
                 m_Label.style.display = value ? DisplayStyle.Flex : DisplayStyle.None;
