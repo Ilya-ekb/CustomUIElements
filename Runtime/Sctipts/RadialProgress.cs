@@ -50,6 +50,16 @@ namespace CustomUIElements
             }
         }
 
+        [UxmlAttribute]
+        public bool showProgress
+        {
+            set
+            {
+                m_Label.style.display = value ? DisplayStyle.Flex : DisplayStyle.None;
+                MarkDirtyRepaint();
+            }
+        }
+
         // This default constructor is RadialProgress's only constructor.
         public RadialProgress()
         {
@@ -105,10 +115,6 @@ namespace CustomUIElements
             element.DrawMeshes(context);
         }
 
-        // DrawMeshes() uses the EllipseMesh utility class to generate an array of vertices and indices, for both the
-        // "track" ring (in grey) and the progress ring (in green). It then passes the geometry to the MeshWriteData
-        // object, as returned by the MeshGenerationContext.Allocate() method. For the "progress", only a slice of
-        // the index arrays is used to progressively reveal parts of the mesh.
         void DrawMeshes(MeshGenerationContext context)
         {
             float halfWidth = contentRect.width * 0.5f;
