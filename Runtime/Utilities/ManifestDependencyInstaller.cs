@@ -16,7 +16,9 @@ namespace CustomUIElements.Utilities
         // List of dependencies: name => git-url or version
         private static readonly Dictionary<string, string> dependenciesToAdd = new Dictionary<string, string>
         {
-            {"com.codewriter.triinspector", "https://github.com/codewriter-packages/Tri-Inspector.git"}
+            {"com.codewriter.triinspector", "https://github.com/codewriter-packages/Tri-Inspector.git"},
+            { "com.cysharp.unitask", "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask" },
+            {"com.ilp.common-extensions", "https://github.com/Ilya-ekb/CommonExtensions.git"},
             // Add your dependencies here
         };
 
