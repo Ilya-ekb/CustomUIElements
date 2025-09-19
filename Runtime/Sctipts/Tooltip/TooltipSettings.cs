@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 #if UNITY_EDITOR
 using EditorExtensions;
-using Utils.Editor;
+using U.Editor;
 #endif
 
 namespace ILP.Tooltips
@@ -31,7 +31,7 @@ namespace ILP.Tooltips
         {
             var list = new TriDropdownList<StyleSheet>();
 #if UNITY_EDITOR
-            var sheets = Utils.Editor.Resources.FindObjectsOfType<StyleSheet>(ResourceType.ScriptableObject);
+            var sheets = Res.FindObjectsOfType<StyleSheet>(ResourceType.ScriptableObject);
             foreach (var sheet in sheets)
             {
                 list.Add(sheet.name, sheet);
