@@ -1,7 +1,7 @@
 {
   "name": "com.ilp.custom-uitoolkit",
   "displayName": "UIToolkit Custom UI Elements",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Custom UI Elements for Unity UIToolkit framework",
   "keywords": [
     "utility",
