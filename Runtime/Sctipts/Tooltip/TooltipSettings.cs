@@ -1,9 +1,11 @@
 using System.Collections.Generic;
-using EditorExtensions;
 using TriInspector;
 using UnityEngine;
 using UnityEngine.UIElements;
+#if UNITY_EDITOR
+using EditorExtensions;
 using Utils;
+#endif
 
 namespace ILP.Tooltips
 {
@@ -13,10 +15,13 @@ namespace ILP.Tooltips
         [Header("Timing (seconds)")] [Min(0f)] public float showDelay = 0.1f;
         [Min(0f)] public float hideDelay = 0.00f;
         [Min(0f)] public float longPressTime = 0.5f;
-        
+
         [Title(nameof(StyleSheet))]
+#if UNITY_EDITOR
         [DropdownWithSearch(nameof(GetAllStyleSheets))]
+#endif
         public StyleSheet styleSheet;
+
         public Vector2 offset = new(12, 12);
         public int fontSize = 12;
         public float maxWidth = 220;
@@ -29,7 +34,7 @@ namespace ILP.Tooltips
             var sheets = Utils.Resources.FindObjectsOfType<StyleSheet>(ResourceType.ScriptableObject);
             foreach (var sheet in sheets)
             {
-                list.Add(sheet.name, sheet);    
+                list.Add(sheet.name, sheet);
             }
 #endif
             return list;
