@@ -18,7 +18,6 @@ namespace CustomUIElements.Utilities
         {
             {"com.codewriter.triinspector", "https://github.com/codewriter-packages/Tri-Inspector.git"},
             { "com.cysharp.unitask", "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask" },
-            {"com.ilp.common-extensions", "https://github.com/Ilya-ekb/CommonExtensions.git"},
             // Add your dependencies here
         };
 

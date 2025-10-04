@@ -1,11 +1,6 @@
-using System.Collections.Generic;
 using TriInspector;
 using UnityEngine;
 using UnityEngine.UIElements;
-#if UNITY_EDITOR
-using EditorExtensions;
-using U.Editor;
-#endif
 
 namespace ILP.Tooltips
 {
@@ -17,27 +12,11 @@ namespace ILP.Tooltips
         [Min(0f)] public float longPressTime = 0.5f;
 
         [Title(nameof(StyleSheet))]
-#if UNITY_EDITOR
-        [DropdownWithSearch(nameof(GetAllStyleSheets))]
-#endif
         public StyleSheet styleSheet;
 
         public Vector2 offset = new(12, 12);
         public int fontSize = 12;
         public float maxWidth = 220;
         public bool enableRichText = true;
-
-        protected virtual IEnumerable<TriDropdownItem<StyleSheet>> GetAllStyleSheets()
-        {
-            var list = new TriDropdownList<StyleSheet>();
-#if UNITY_EDITOR
-            var sheets = Res.FindObjectsOfType<StyleSheet>(ResourceType.ScriptableObject);
-            foreach (var sheet in sheets)
-            {
-                list.Add(sheet.name, sheet);
-            }
-#endif
-            return list;
-        }
     }
 }
